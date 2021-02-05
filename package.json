@@ -1,0 +1,16 @@
+{
+  "name": "deckboard-soundpad",
+  "version": "1.0.0",
+  "description": "Deckboard plugin to control Soundpad",
+  "main": "index.js",
+  "scripts": {
+    "build": "deckboard-kit --build",
+    "install": "deckboard-kit --install"
+  },
+  "author": "Riva Farabi",
+  "license": "MIT",
+  "dependencies": {
+    "deckboard-kit": "^0.3.0",
+    "xml-js": "^1.6.11"
+  }
+}
