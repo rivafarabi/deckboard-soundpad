@@ -7,55 +7,60 @@ var pipe = null;
 var socket = null;
 var currentRequest = null;
 
-function init(callback) {
-    if (pipe === null) {
-        socket = net.createConnection(PIPE_NAME, () => {
-            console.log('CONNECTED')
-            pipe = socket;
-            callback();
-        })
-    } else callback();
+function init() {
+    return new Promise((resolve, reject) => {
+        try {
+            if (pipe === null) {
+                socket = net.createConnection(PIPE_NAME, () => {
+                    console.log('CONNECTED')
+                    pipe = socket;
+
+                    resolve();
+                })
+                socket.on('error', err => reject(err))
+            } else resolve();
+        } catch (err) {
+            reject(err);
+        }
+    })
+
 }
 
-function sendRequest(request, callback, onError) {
+async function sendRequest(request, callback, onError) {
     try {
-        init(() => {
-            setTimeout(() => {
-                if (!!currentRequest) return;
+        await init();
+        setTimeout(() => {
+            if (!!currentRequest) return;
 
-                currentRequest = request;
+            currentRequest = request;
 
-                pipe.on('data', res => {
-                    try {
-                        if (currentRequest !== request) throw 'Current request not match';
+            pipe.on('data', res => {
+                try {
+                    if (currentRequest !== request) throw 'Current request not match';
 
-                        const jsonRes = xmljs.xml2json(res.toString('utf8'), { compact: true })
-                        const { _declaration, ...data } = JSON.parse(jsonRes);
-                        callback(data);
-                    } catch (err) {
-                        callback()
-                    } finally {
-                        pipe.removeAllListeners('data', () => console.log('listener removed'));
-                        currentRequest = null;
-                    }
-                })
+                    const jsonRes = xmljs.xml2json(res.toString('utf8'), { compact: true })
+                    const { _declaration, ...data } = JSON.parse(jsonRes);
+                    callback(data);
+                } catch (err) {
+                    callback()
+                } finally {
+                    pipe.removeAllListeners('data', () => console.log('listener removed'));
+                    currentRequest = null;
+                }
+            })
 
-                pipe.write(request);
-                pipe.read(socket.bytesWritten)
-                return
+            pipe.write(request);
+            pipe.read(socket.bytesWritten)
+            return
 
-            }, 100)
-
-
-        });
-
+        }, 100)
     } catch (err) {
         console.log('sendRequest ERR:', { err });
         if (pipe != null) {
             pipe.end()
         }
         pipe = null;
-        onError(err)
+        onError(err);
     }
 }
 
@@ -70,7 +75,8 @@ function playSound(index, renderLine = true, captureLine = true) {
 
 function getSoundList() {
     return new Promise((resolve, reject) => {
-        sendRequest('GetSoundList()',
+        sendRequest(
+            'GetSoundList()',
             response => {
                 try {
                     const { Soundlist } = response;
@@ -86,8 +92,9 @@ function getSoundList() {
                 catch (err) {
                     resolve([])
                 }
-            }),
+            },
             reject
+        );
     })
 }
 

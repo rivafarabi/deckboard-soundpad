@@ -1,9 +1,4 @@
-const {
-	Extension,
-	log,
-	INPUT_METHOD,
-	PLATFORMS,
-} = require('deckboard-kit');
+const { Extension, log, INPUT_METHOD, PLATFORMS } = require('deckboard-kit');
 const { playSound, getSoundList } = require('./soundpad');
 
 class Soundpad extends Extension {
@@ -22,33 +17,41 @@ class Soundpad extends Extension {
 				value: 'soundpad-play',
 				icon: 'volume-up',
 				color: '#bf001d',
-				input: [
-					{
-						label: 'Action Value',
-						ref: 'index',
-						type: INPUT_METHOD.INPUT_SELECT,
-						items
-					},
-					{
-						label: 'Play On',
-						ref: 'playon',
-						type: INPUT_METHOD.INPUT_SELECT,
-						items: [
-							{
-								label: 'Speaker + Microphone',
-								value: 1
-							},
-							{
-								label: 'Speaker Only',
-								value: 2
-							},
-							{
-								label: 'Microphone Only',
-								value: 3
-							}
-						]
-					}
-				]
+				input: items === null
+					? [
+						{
+							label: 'Soundpad is not running!',
+							type: 'input:warning',
+							refresh: true
+						}
+					]
+					: [
+						{
+							label: 'Action Value',
+							ref: 'index',
+							type: INPUT_METHOD.INPUT_SELECT,
+							items
+						},
+						{
+							label: 'Play On',
+							ref: 'playon',
+							type: INPUT_METHOD.INPUT_SELECT,
+							items: [
+								{
+									label: 'Speaker + Microphone',
+									value: 1
+								},
+								{
+									label: 'Speaker Only',
+									value: 2
+								},
+								{
+									label: 'Microphone Only',
+									value: 3
+								}
+							]
+						}
+					]
 			}
 		];
 	}
@@ -60,7 +63,13 @@ class Soundpad extends Extension {
 			this.inputs = this.setItems(items);
 		} catch (err) {
 			log.error(`soundpad:initExtension ${err}`);
+			this.inputs = this.setItems(null);
 		}
+	}
+
+	// Executes everytime the button creation modal pops up.
+	async update() {
+		return this.initExtension();
 	}
 
 	async execute(action, args) {
