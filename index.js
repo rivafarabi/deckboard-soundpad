@@ -1,5 +1,5 @@
 const { Extension, log, INPUT_METHOD, PLATFORMS } = require('deckboard-kit');
-const { playSound, getSoundList } = require('./soundpad');
+const { playSound, getSoundList, togglePause, stopSound } = require('./soundpad');
 
 class Soundpad extends Extension {
 	constructor() {
@@ -52,6 +52,18 @@ class Soundpad extends Extension {
 							]
 						}
 					]
+			},
+			{
+				label: 'Stop Sound',
+				value: 'soundpad-stop',
+				icon: 'stop-circle',
+				color: '#bf001d',
+			},
+			{
+				label: 'Toggle Sound',
+				value: 'soundpad-toggle-pause',
+				icon: 'pause-circle',
+				color: '#bf001d',
 			}
 		];
 	}
@@ -61,7 +73,7 @@ class Soundpad extends Extension {
 		try {
 			const items = await getSoundList();
 			this.inputs = this.setItems(items);
-		} catch (err) {
+		} catch(err) {
 			log.error(`soundpad:initExtension ${err}`);
 			this.inputs = this.setItems(null);
 		}
@@ -74,10 +86,10 @@ class Soundpad extends Extension {
 
 	async execute(action, args) {
 		try {
-			switch (action) {
+			switch(action) {
 				case 'soundpad-play':
 					let renderLine, captureLine;
-					switch (args.playon) {
+					switch(args.playon) {
 						case 2:
 							renderLine = true;
 							captureLine = false;
@@ -91,10 +103,16 @@ class Soundpad extends Extension {
 
 					playSound(args.index, renderLine, captureLine);
 					break;
+				case 'soundpad-stop':
+					stopSound();
+					break;
+				case 'soundpad-toggle-pause':
+					togglePause();
+					break;
 				default:
 					break;
 			}
-		} catch (err) {
+		} catch(err) {
 			log.error(`soundpad:execute ${err}`)
 		}
 	};

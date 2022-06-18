@@ -10,7 +10,7 @@ var currentRequest = null;
 function init() {
     return new Promise((resolve, reject) => {
         try {
-            if (pipe === null) {
+            if(pipe === null) {
                 socket = net.createConnection(PIPE_NAME, () => {
                     console.log('CONNECTED')
                     pipe = socket;
@@ -19,7 +19,7 @@ function init() {
                 })
                 socket.on('error', err => reject(err))
             } else resolve();
-        } catch (err) {
+        } catch(err) {
             reject(err);
         }
     })
@@ -30,18 +30,18 @@ async function sendRequest(request, callback, onError) {
     try {
         await init();
         setTimeout(() => {
-            if (!!currentRequest) return;
+            if(!!currentRequest) return;
 
             currentRequest = request;
 
             pipe.on('data', res => {
                 try {
-                    if (currentRequest !== request) throw 'Current request not match';
+                    if(currentRequest !== request) throw 'Current request not match';
 
                     const jsonRes = xmljs.xml2json(res.toString('utf8'), { compact: true })
                     const { _declaration, ...data } = JSON.parse(jsonRes);
                     callback(data);
-                } catch (err) {
+                } catch(err) {
                     callback()
                 } finally {
                     pipe.removeAllListeners('data', () => console.log('listener removed'));
@@ -54,9 +54,9 @@ async function sendRequest(request, callback, onError) {
             return
 
         }, 100)
-    } catch (err) {
+    } catch(err) {
         console.log('sendRequest ERR:', { err });
-        if (pipe != null) {
+        if(pipe != null) {
             pipe.end()
         }
         pipe = null;
@@ -67,6 +67,24 @@ async function sendRequest(request, callback, onError) {
 function playSound(index, renderLine = true, captureLine = true) {
     return new Promise((resolve, reject) => {
         sendRequest(`DoPlaySound(${index}, ${renderLine}, ${captureLine})`,
+            resolve,
+            reject
+        )
+    });
+}
+
+function stopSound() {
+    return new Promise((resolve, reject) => {
+        sendRequest(`DoStopSound()`,
+            resolve,
+            reject
+        )
+    });
+}
+
+function togglePause() {
+    return new Promise((resolve, reject) => {
+        sendRequest(`DoTogglePause()`,
             resolve,
             reject
         )
@@ -89,7 +107,7 @@ function getSoundList() {
                     })
                     resolve(data);
                 }
-                catch (err) {
+                catch(err) {
                     resolve([])
                 }
             },
@@ -101,5 +119,7 @@ function getSoundList() {
 module.exports = {
     init,
     playSound,
+    stopSound,
+    togglePause,
     getSoundList
 }
