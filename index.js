@@ -1,5 +1,5 @@
 const { Extension, log, INPUT_METHOD, PLATFORMS } = require('deckboard-kit');
-const { playSound, getSoundList, togglePause, stopSound } = require('./soundpad');
+const { playSound, getSoundList, togglePause, stopSound, getPlayStatus } = require('./soundpad');
 
 class Soundpad extends Extension {
 	constructor() {
@@ -48,6 +48,21 @@ class Soundpad extends Extension {
 								{
 									label: 'Microphone Only',
 									value: 3
+								}
+							]
+						},
+						{
+							label: 'Toggle Play',
+							ref: 'togglestop',
+							type: INPUT_METHOD.INPUT_SELECT,
+							items: [
+								{
+									label: 'Play',
+									value: 1
+								},
+								{
+									label: 'Play/Stop',
+									value: 2
 								}
 							]
 						}
@@ -100,8 +115,21 @@ class Soundpad extends Extension {
 							renderLine = true;
 							captureLine = true;
 					}
+					switch(args.togglestop) {
+						case 2:
+							const status = await getPlayStatus();
+							if(status == 'PLAYING') {
+								stopSound();
+							}
+							else{
+								playSound(args.index, renderLine, captureLine);
+							}
+							break;
+						default:
+							playSound(args.index, renderLine, captureLine);
+					}
 
-					playSound(args.index, renderLine, captureLine);
+					
 					break;
 				case 'soundpad-stop':
 					stopSound();
