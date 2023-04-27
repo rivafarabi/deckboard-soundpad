@@ -36,11 +36,19 @@ async function sendRequest(request, callback, onError) {
 
             pipe.on('data', res => {
                 try {
+                    //console.log(res.toString('utf8'));
+                    
                     if(currentRequest !== request) throw 'Current request not match';
 
-                    const jsonRes = xmljs.xml2json(res.toString('utf8'), { compact: true })
-                    const { _declaration, ...data } = JSON.parse(jsonRes);
-                    callback(data);
+                        try{
+                            const jsonRes = xmljs.xml2json(res.toString('utf8'), { compact: true })
+                            const { _declaration, ...data } = JSON.parse(jsonRes);
+                            callback(data);
+                        }
+                        catch(err) {
+                            callback(res.toString('utf8'))
+                        }
+                    
                 } catch(err) {
                     callback()
                 } finally {
@@ -116,10 +124,20 @@ function getSoundList() {
     })
 }
 
+function getPlayStatus() {
+    return new Promise((resolve, reject) => {
+        sendRequest(`GetPlayStatus()`,
+            resolve,
+            reject
+        )
+    });
+}
+
 module.exports = {
     init,
     playSound,
     stopSound,
     togglePause,
-    getSoundList
+    getSoundList,
+    getPlayStatus
 }
